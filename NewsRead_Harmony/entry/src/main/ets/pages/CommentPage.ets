@@ -17,7 +17,8 @@ struct CommentPage {
   @State isLoggedIn: boolean = false;
   private scroller: Scroller = new Scroller();
 
-  aboutToAppear() {
+  async aboutToAppear() {
+    await AuthUtil.restoreLogin();
     this.isLoggedIn = AuthUtil.isLoggedIn();
     let params = router.getParams() as ArticleRouteParams;
     if (params) {

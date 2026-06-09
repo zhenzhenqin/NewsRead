@@ -45,23 +45,25 @@ export async function login(username: string, password: string): Promise<LoginRe
   try {
     AuthUtil.setUser(result.user, result.token);
     setToken(result.token);
+    console.info('[AUTH] login: setUser OK, userId=' + result.user.id);
   } catch (e) {
-    console.error('保存登录信息失败:', JSON.stringify(e));
+    console.error('[AUTH] login: setUser failed: ' + JSON.stringify(e));
   }
 
   // 尝试保存到本地存储
   try {
     await StorageUtil.saveToken(result.token);
-    await StorageUtil.saveUser(
-      result.user.id,
-      result.user.username,
-      result.user.nickname,
-      result.user.avatar,
-      result.user.email,
-      result.user.phone
-    );
+    console.info('[AUTH] login: saveToken OK');
+    // 逐个保存用户字段，避免 saveUser 方法调用异常
+    await StorageUtil.saveUserId(result.user.id);
+    await StorageUtil.saveUsername(result.user.username);
+    await StorageUtil.saveNickname(result.user.nickname);
+    await StorageUtil.saveAvatar(result.user.avatar);
+    await StorageUtil.saveEmail(result.user.email);
+    await StorageUtil.savePhone(result.user.phone);
+    console.info('[AUTH] login: saveUser OK, userId=' + result.user.id);
   } catch (e) {
-    console.error('保存本地存储失败:', JSON.stringify(e));
+    console.error('[AUTH] login: saveUser failed: ' + JSON.stringify(e));
   }
 
   return result;

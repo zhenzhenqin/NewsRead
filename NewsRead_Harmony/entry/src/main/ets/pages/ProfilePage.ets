@@ -13,7 +13,10 @@ struct ProfilePage {
   @State phone: string = '';
   @State isLoading: boolean = false;
 
-  aboutToAppear() {
+  async aboutToAppear() {
+    console.info('[AUTH] ProfilePage.aboutToAppear: start');
+    await AuthUtil.restoreLogin();
+    console.info('[AUTH] ProfilePage.aboutToAppear: isLoggedIn=' + AuthUtil.isLoggedIn());
     this.loadUserInfo();
   }
 

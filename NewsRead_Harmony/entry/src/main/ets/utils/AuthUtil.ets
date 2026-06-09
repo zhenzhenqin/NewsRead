@@ -3,36 +3,44 @@ import { StorageUtil } from '../utils/StorageUtil';
 import { setToken } from '../utils/HttpUtil';
 
 async function restoreLoginState(): Promise<boolean> {
-  let token = await StorageUtil.getToken();
-  console.log('restoreLoginState token:', token);
-  if (!token) {
+  try {
+    let token = await StorageUtil.getToken();
+    console.info('[AUTH] step1 getToken: ' + (token ? 'YES len=' + token.length : 'EMPTY'));
+    if (!token) {
+      console.info('[AUTH] no token, return false');
+      return false;
+    }
+
+    let userId = await StorageUtil.getUserId();
+    console.info('[AUTH] step2 getUserId: ' + userId + ' (type=' + typeof userId + ')');
+    if (!userId || userId === 0) {
+      console.info('[AUTH] no userId, return false');
+      return false;
+    }
+
+    let username = await StorageUtil.getUsername();
+    let nickname = await StorageUtil.getNickname();
+    let avatar = await StorageUtil.getAvatar();
+    let email = await StorageUtil.getEmail();
+    let phone = await StorageUtil.getPhone();
+    console.info('[AUTH] step3 user info: username=' + username + ', nickname=' + nickname);
+
+    let user = new User();
+    user.id = userId;
+    user.username = username;
+    user.nickname = nickname;
+    user.avatar = avatar;
+    user.email = email;
+    user.phone = phone;
+
+    AuthUtil.setUser(user, token);
+    setToken(token);
+    console.info('[AUTH] step4 RESTORE OK, userId=' + userId);
+    return true;
+  } catch (e) {
+    console.error('[AUTH] EXCEPTION: ' + JSON.stringify(e));
     return false;
   }
-
-  let userId = await StorageUtil.getUserId();
-  if (!userId) {
-    console.log('restoreLoginState: no userId');
-    return false;
-  }
-
-  let username = await StorageUtil.getUsername();
-  let nickname = await StorageUtil.getNickname();
-  let avatar = await StorageUtil.getAvatar();
-  let email = await StorageUtil.getEmail();
-  let phone = await StorageUtil.getPhone();
-
-  let user = new User();
-  user.id = userId;
-  user.username = username;
-  user.nickname = nickname;
-  user.avatar = avatar;
-  user.email = email;
-  user.phone = phone;
-
-  AuthUtil.setUser(user, token);
-  setToken(token);
-  console.log('restoreLoginState: success, token set to:', token);
-  return true;
 }
 
 class AuthUtil {
@@ -47,7 +55,6 @@ class AuthUtil {
   static setUser(user: User, token: string): void {
     AuthUtil.currentUser = user;
     AuthUtil.token = token;
-    console.log('AuthUtil.setUser: userId=' + user.id + ', token=' + token.substring(0, 20) + '...');
   }
 
   static getToken(): string {
@@ -66,13 +73,19 @@ class AuthUtil {
 
   static async restoreLogin(): Promise<boolean> {
     if (AuthUtil.isInit) {
-      console.log('restoreLogin: already initialized, isLoggedIn:', AuthUtil.isLoggedIn());
+      console.info('[AUTH] restoreLogin: cached, isLoggedIn=' + AuthUtil.isLoggedIn());
       return AuthUtil.isLoggedIn();
     }
-    AuthUtil.isInit = true;
-    const result = await restoreLoginState();
-    console.log('restoreLogin: first time, result:', result);
-    return result;
+    try {
+      console.info('[AUTH] restoreLogin: starting fresh restore...');
+      const result = await restoreLoginState();
+      AuthUtil.isInit = true;
+      console.info('[AUTH] restoreLogin: done, result=' + result + ', isLoggedIn=' + AuthUtil.isLoggedIn());
+      return result;
+    } catch (e) {
+      console.error('[AUTH] restoreLogin EXCEPTION: ' + JSON.stringify(e));
+      return false;
+    }
   }
 }
 

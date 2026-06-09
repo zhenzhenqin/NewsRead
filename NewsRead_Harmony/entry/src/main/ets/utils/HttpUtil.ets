@@ -3,8 +3,8 @@ import http from '@ohos.net.http';
 let token: string = '';
 
 export function setToken(t: string): void {
-  console.log('Token set');
   token = t;
+  console.log('HttpUtil.setToken: ' + (t ? t.substring(0, 20) + '...' : '(empty)'));
 }
 
 export function getToken(): string {

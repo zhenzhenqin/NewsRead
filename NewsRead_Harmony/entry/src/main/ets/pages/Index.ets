@@ -37,8 +37,10 @@ struct Index {
   }
 
   async initAndLoad() {
+    console.info('[AUTH] Index.initAndLoad: start');
     await AuthUtil.restoreLogin();
     this.refreshLoginState();
+    console.info('[AUTH] Index.initAndLoad: isLoggedIn=' + this.isLoggedIn);
     this.loadData();
   }
 
@@ -52,8 +54,11 @@ struct Index {
     }
   }
 
-  onPageShow() {
+  async onPageShow() {
+    console.info('[AUTH] Index.onPageShow: start');
+    await AuthUtil.restoreLogin();
     this.refreshLoginState();
+    console.info('[AUTH] Index.onPageShow: isLoggedIn=' + this.isLoggedIn);
   }
 
   async loadData() {
