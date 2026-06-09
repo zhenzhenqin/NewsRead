@@ -1,0 +1,33 @@
+# Claude Code
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# NewsRead_Admin
+NewsRead_Admin/node_modules/
+NewsRead_Admin/dist/
+NewsRead_Admin/*.local
+NewsRead_Admin/*.tsbuildinfo
+
+# NewsRead_Server
+NewsRead_Server/target/
+NewsRead_Server/.mvn/wrapper/maven-wrapper.jar
+NewsRead_Server/uploads/
+
+# NewsRead_Harmony
+NewsRead_Harmony/node_modules/
+NewsRead_Harmony/oh_modules/
+NewsRead_Harmony/local.properties
+NewsRead_Harmony/.hvigor/
+NewsRead_Harmony/**/build/
+NewsRead_Harmony/.cxx/

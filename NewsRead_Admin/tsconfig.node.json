@@ -1,0 +1,12 @@
+{
+  "include": [
+    "vite.config.*",
+    "vitest.config.*"
+  ],
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "noEmit": true
+  }
+}

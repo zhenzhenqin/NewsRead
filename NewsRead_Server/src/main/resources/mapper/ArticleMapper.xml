@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.newsread.mapper.ArticleMapper">
+
+    <select id="selectRecommendList" resultType="com.newsread.entity.Article">
+        SELECT * FROM article
+        WHERE status = 1 AND is_published = 1
+        ORDER BY 
+            CASE WHEN is_featured = 1 THEN 0 ELSE 1 END,
+            (view_count * 0.3 + like_count * 0.5 + comment_count * 0.2) DESC,
+            publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectFeaturedList" resultType="com.newsread.entity.Article">
+        SELECT * FROM article
+        WHERE status = 1 AND is_published = 1 AND is_featured = 1
+        ORDER BY publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectHotList" resultType="com.newsread.entity.Article">
+        SELECT * FROM article
+        WHERE status = 1 AND is_published = 1
+        ORDER BY (view_count + like_count + comment_count) DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectByCategoryId" resultType="com.newsread.entity.Article">
+        SELECT * FROM article
+        WHERE status = 1 AND is_published = 1 AND category_id = #{categoryId}
+        ORDER BY publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

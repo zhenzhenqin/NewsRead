@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "NewsRead"
+    },
+    {
+      "name": "internet_permission_reason",
+      "value": "需要网络权限以获取新闻数据"
+    }
+  ]
+}
