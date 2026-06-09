@@ -1,5 +1,6 @@
 import { get, post, del } from '../utils/HttpUtil';
 
+@Observed
 class Article {
   id: number = 0;
   title: string = '';

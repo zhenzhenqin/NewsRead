@@ -65,7 +65,8 @@ export async function request<T>(url: string, method: http.RequestMethod, extraD
       if (code === 200 || code === 201) {
         const data = resultObj['data'];
         if (data === undefined || data === null) {
-          throw new Error('响应数据为空');
+          // void 接口（如删除）返回 data:null 是正常情况
+          return null as T;
         }
         return data as T;
       }

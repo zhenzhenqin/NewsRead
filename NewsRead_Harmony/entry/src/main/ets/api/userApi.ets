@@ -1,4 +1,4 @@
-import { get, post, put, setToken, getToken as getTokenUtil } from '../utils/HttpUtil';
+import { get, post, put, del, setToken, getToken as getTokenUtil } from '../utils/HttpUtil';
 import { AuthUtil } from '../utils/AuthUtil';
 import { StorageUtil } from '../utils/StorageUtil';
 
@@ -156,4 +156,12 @@ export async function addBrowseHistory(articleId: number): Promise<void> {
   let data = new BrowseHistoryData();
   data.articleId = articleId;
   await post<void>('/user/history/add', data);
+}
+
+export async function deleteBrowseHistory(articleId: number): Promise<void> {
+  await del<void>('/user/history/' + articleId);
+}
+
+export async function clearBrowseHistory(): Promise<void> {
+  await del<void>('/user/history/clear');
 }

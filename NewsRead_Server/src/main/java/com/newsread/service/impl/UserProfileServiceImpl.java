@@ -102,4 +102,19 @@ public class UserProfileServiceImpl implements UserProfileService {
             browseHistoryMapper.insert(history);
         }
     }
+
+    @Override
+    public void deleteBrowseHistory(Long userId, Long articleId) {
+        LambdaQueryWrapper<BrowseHistory> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BrowseHistory::getUserId, userId);
+        wrapper.eq(BrowseHistory::getArticleId, articleId);
+        browseHistoryMapper.delete(wrapper);
+    }
+
+    @Override
+    public void clearBrowseHistory(Long userId) {
+        LambdaQueryWrapper<BrowseHistory> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BrowseHistory::getUserId, userId);
+        browseHistoryMapper.delete(wrapper);
+    }
 }

@@ -78,4 +78,18 @@ public class UserProfileController {
             return Result.error("添加浏览记录失败: " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/history/{articleId}")
+    public Result<Void> deleteBrowseHistory(
+            @RequestAttribute("userId") Long userId,
+            @PathVariable Long articleId) {
+        userProfileService.deleteBrowseHistory(userId, articleId);
+        return Result.success(null);
+    }
+
+    @DeleteMapping("/history/clear")
+    public Result<Void> clearBrowseHistory(@RequestAttribute("userId") Long userId) {
+        userProfileService.clearBrowseHistory(userId);
+        return Result.success(null);
+    }
 }

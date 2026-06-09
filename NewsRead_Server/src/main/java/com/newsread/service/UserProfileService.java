@@ -15,4 +15,8 @@ public interface UserProfileService {
     List<Article> getBrowseHistory(Long userId, Integer pageNum, Integer pageSize);
 
     void addBrowseHistory(Long userId, Long articleId);
+
+    void deleteBrowseHistory(Long userId, Long articleId);
+
+    void clearBrowseHistory(Long userId);
 }
