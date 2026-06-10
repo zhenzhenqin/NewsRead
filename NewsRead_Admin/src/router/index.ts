@@ -29,7 +29,8 @@ const router = createRouter({
         { path: 'user', name: 'user', component: UserList },
         { path: 'admin', name: 'admin', component: AdminList },
         { path: 'comment', name: 'comment', component: CommentList },
-        { path: 'spider', name: 'spider', component: () => import('../views/SpiderList.vue'), meta: { title: '新闻爬虫' } }
+        { path: 'spider', name: 'spider', component: () => import('../views/SpiderList.vue'), meta: { title: '新闻爬虫' } },
+        { path: 'favorite', name: 'favorite', component: () => import('../views/FavoriteList.vue'), meta: { title: '收藏统计' } }
       ]
     }
   ]

@@ -40,6 +40,10 @@
           <el-icon><Connection /></el-icon>
           <span>新闻爬虫</span>
         </el-menu-item>
+        <el-menu-item index="/favorite">
+          <el-icon><Star /></el-icon>
+          <span>收藏统计</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
@@ -72,7 +76,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { DataAnalysis, Document, Folder, User, UserFilled, ChatDotRound, Connection } from '@element-plus/icons-vue'
+import { DataAnalysis, Document, Folder, User, UserFilled, ChatDotRound, Connection, Star } from '@element-plus/icons-vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 
 const route = useRoute()

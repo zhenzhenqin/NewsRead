@@ -27,6 +27,9 @@ public class SpiderService {
     @Autowired
     private SpiderArticleMapper spiderArticleMapper;
 
+    @Autowired
+    private AiSummaryService aiSummaryService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -110,15 +113,26 @@ public class SpiderService {
     }
 
     /**
-     * 将爬虫文章发布到正式文章表
+     * 将爬虫文章发布到正式文章表，AI 生成摘要和推荐分类（失败则降级）
      */
     public void publishArticle(SpiderArticleDTO dto, Long adminUserId) {
+        // 默认值：使用原始摘要和前端选择的分类
+        String summary = dto.getSummary();
+        Long categoryId = dto.getCategoryId();
+
+        // 调用 AI 生成摘要和推荐分类
+        String[] aiResult = aiSummaryService.generate(dto.getTitle(), dto.getSummary());
+        if (aiResult != null) {
+            summary = aiResult[0];
+            categoryId = Long.parseLong(aiResult[1]);
+        }
+
         Article article = new Article();
         article.setTitle(dto.getTitle());
-        article.setContent(dto.getSummary());
-        article.setSummary(dto.getSummary());
+        article.setContent(summary);
+        article.setSummary(summary);
         article.setCoverImage(dto.getCoverImage());
-        article.setCategoryId(dto.getCategoryId());
+        article.setCategoryId(categoryId);
         article.setAuthorId(adminUserId);
         article.setIsPublished(1);
         article.setStatus(1);

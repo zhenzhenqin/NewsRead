@@ -199,6 +199,29 @@ struct ProfileDetailPage {
       .justifyContent(FlexAlign.SpaceBetween)
       .alignItems(VerticalAlign.Center)
 
+      // --- 我的收藏入口 ---
+      Row({ space: 12 }) {
+        Text('★')
+          .fontSize(18)
+          .fontColor('#FFA500')
+        Text('我的收藏')
+          .fontSize(16)
+          .fontColor('#1A1A1A')
+          .layoutWeight(1)
+        Text('>')
+          .fontSize(16)
+          .fontColor('#CCCCCC')
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+      .backgroundColor('#FFFFFF')
+      .margin({ top: 8 })
+      .borderRadius(12)
+      .shadow({ radius: 8, color: 'rgba(0, 0, 0, 0.03)', offsetX: 0, offsetY: 2 })
+      .onClick(() => {
+        router.pushUrl({ url: 'pages/FavoritePage' });
+      })
+
       // --- 标签切换栏 ---
       Row({ space: 0 }) {
         ForEach(['我的喜欢', '我的评论', '浏览历史'], (title: string, index: number) => {

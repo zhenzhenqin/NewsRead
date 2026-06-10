@@ -43,3 +43,11 @@ logging:
 jwt:
   secret: NewsRead2024SecretKeyForJWTTokenGeneration123456
   expiration: 86400000
+
+ai:
+  model:
+    # 硅基流动 免费API（注册即送额度，Qwen2.5-7B 免费）
+    # 注册地址：https://cloud.siliconflow.cn
+    api-url: https://api.siliconflow.cn/v1/chat/completions
+    api-key: sk-vnaoqiypclyxdinhmsbrxilpzzokihxxdzkuhglzgjyzrsix
+    model-name: Qwen/Qwen2.5-7B-Instruct

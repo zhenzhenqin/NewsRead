@@ -2,6 +2,7 @@ import router from '@ohos.router';
 import { getArticleDetail, likeArticle, unlikeArticle, hasLikedArticle } from '../api/articleApi';
 import { getCommentsByArticle, addComment, likeComment, Comment } from '../api/commentApi';
 import { addBrowseHistory } from '../api/userApi';
+import { checkFavorited, addFavorite, removeFavorite } from '../api/favoriteApi';
 import { AuthUtil } from '../utils/AuthUtil';
 import { getToken } from '../utils/HttpUtil';
 import promptAction from '@ohos.promptAction';
@@ -21,6 +22,7 @@ class ArticleDetailData {
   isPublished: number = 0;
   publishTime: string = '';
   isLiked: boolean = false;
+  isFavorited: boolean = false;
 }
 
 @Entry
@@ -78,6 +80,9 @@ struct ArticleDetail {
 
         const likeResult = await hasLikedArticle(id);
         this.article.isLiked = likeResult.liked;
+
+        const favResult = await checkFavorited(id);
+        this.article.isFavorited = favResult;
       }
 
       const commentResult = await getCommentsByArticle(id);
@@ -106,6 +111,28 @@ struct ArticleDetail {
       this.article.isLiked = !this.article.isLiked;
     } catch (e) {
       console.error('点赞操作失败:', JSON.stringify(e));
+      promptAction.showToast({ message: '操作失败' });
+    }
+  }
+
+  async handleFavorite() {
+    if (!this.article) return;
+    if (!this.isLoggedIn) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+    try {
+      if (this.article.isFavorited) {
+        await removeFavorite(this.article.id);
+        this.article.isFavorited = false;
+        promptAction.showToast({ message: '已取消收藏' });
+      } else {
+        await addFavorite(this.article.id);
+        this.article.isFavorited = true;
+        promptAction.showToast({ message: '收藏成功' });
+      }
+    } catch (e) {
+      console.error('收藏操作失败:', JSON.stringify(e));
       promptAction.showToast({ message: '操作失败' });
     }
   }
@@ -274,6 +301,16 @@ struct ArticleDetail {
             }
             .onClick(() => {
               this.handleLike();
+            })
+
+            // 收藏按钮
+            Row({ space: 4 }) {
+              Text(this.article.isFavorited ? '★' : '☆')
+                .fontSize(20)
+                .fontColor(this.article.isFavorited ? '#FFA500' : '#999999')
+            }
+            .onClick(() => {
+              this.handleFavorite();
             })
 
             TextInput({ placeholder: '说点什么...', text: this.commentText })

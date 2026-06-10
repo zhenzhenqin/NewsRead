@@ -252,6 +252,19 @@ CREATE TABLE IF NOT EXISTS `spider_article` (
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='爬虫文章暂存表';
 
+-- 9. 文章收藏表
+CREATE TABLE IF NOT EXISTS `article_favorite` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `article_id` BIGINT NOT NULL COMMENT '文章ID',
+    `folder_name` VARCHAR(50) DEFAULT '默认收藏夹' COMMENT '收藏夹名称',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_article` (`user_id`, `article_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_article_id` (`article_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文章收藏表';
+
 -- 插入评论点赞记录 (测试评论列表功能)
 INSERT INTO `comment_like` (`user_id`, `comment_id`, `create_time`) VALUES
                                                                         (101, 1000, '2026-04-14 09:40:00'), -- 点赞职场评论
