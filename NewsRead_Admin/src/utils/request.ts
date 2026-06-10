@@ -27,6 +27,13 @@ request.interceptors.response.use(
     return Promise.reject(new Error(res.message))
   },
   (error) => {
+    if (error.response && error.response.status === 401) {
+      ElMessage.warning('登录已过期，请重新登录')
+      localStorage.removeItem('token')
+      localStorage.removeItem('adminUser')
+      window.location.href = '/login'
+      return Promise.reject(error)
+    }
     ElMessage.error(error.message || '网络错误')
     return Promise.reject(error)
   }

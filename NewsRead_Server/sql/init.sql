@@ -237,6 +237,21 @@ INSERT INTO `article_like` (`user_id`, `article_id`, `create_time`) VALUES
                                                                         (102, 203, '2026-04-12 10:10:00'),
                                                                         (103, 207, '2026-04-14 11:40:00');
 
+-- 8. 爬虫文章暂存表
+CREATE TABLE IF NOT EXISTS `spider_article` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `title` VARCHAR(200) NOT NULL COMMENT '新闻标题',
+    `summary` VARCHAR(500) DEFAULT NULL COMMENT '摘要',
+    `cover_image` VARCHAR(500) DEFAULT NULL COMMENT '封面图URL',
+    `source_url` VARCHAR(500) DEFAULT NULL COMMENT '原始链接',
+    `category_id` BIGINT DEFAULT NULL COMMENT '分类ID',
+    `status` TINYINT DEFAULT 1 COMMENT '状态 1-正常 0-已删除',
+    `fetch_time` DATETIME DEFAULT NULL COMMENT '抓取时间',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='爬虫文章暂存表';
+
 -- 插入评论点赞记录 (测试评论列表功能)
 INSERT INTO `comment_like` (`user_id`, `comment_id`, `create_time`) VALUES
                                                                         (101, 1000, '2026-04-14 09:40:00'), -- 点赞职场评论

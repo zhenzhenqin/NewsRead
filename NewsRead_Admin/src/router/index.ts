@@ -28,7 +28,8 @@ const router = createRouter({
         { path: 'category', name: 'category', component: () => import('../views/CategoryList.vue') },
         { path: 'user', name: 'user', component: UserList },
         { path: 'admin', name: 'admin', component: AdminList },
-        { path: 'comment', name: 'comment', component: CommentList }
+        { path: 'comment', name: 'comment', component: CommentList },
+        { path: 'spider', name: 'spider', component: () => import('../views/SpiderList.vue'), meta: { title: '新闻爬虫' } }
       ]
     }
   ]

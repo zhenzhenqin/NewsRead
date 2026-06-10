@@ -83,6 +83,12 @@ export async function request<T>(url: string, method: http.RequestMethod, extraD
       resString = JSON.stringify(response.result);
     }
 
+    // 401 登录过期处理
+    if (response.responseCode === 401) {
+      token = '';
+      throw new Error('登录已过期，请重新登录');
+    }
+
     try {
       const resultObj = JSON.parse(resString) as Record<string, Object>;
       const message = (resultObj['message'] as string) || '请求失败';
