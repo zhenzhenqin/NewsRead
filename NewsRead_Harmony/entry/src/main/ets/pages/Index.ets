@@ -374,9 +374,6 @@ struct Index {
         }
       }
       .scrollBar(BarState.Off)
-      .onReachEnd(() => {
-        this.loadRecommendMore();
-      })
     }
     .onRefreshing(() => {
       this.onRefresh();
@@ -430,9 +427,6 @@ struct Index {
           }
         }
         .scrollBar(BarState.Off)
-        .onReachEnd(() => {
-          this.loadFollowingMore();
-        })
       }
       .onRefreshing(() => {
         this.onRefresh();
