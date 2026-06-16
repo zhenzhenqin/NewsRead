@@ -536,10 +536,21 @@ struct Index {
         }
       })
     } else if (hasData) {
-      Text('— 已加载全部 —')
-        .fontSize(14)
-        .fontColor('#CCCCCC')
-        .padding({ top: 30, bottom: 30 })
+      Column() {
+        Divider()
+          .width(60)
+          .height(2)
+          .color('#E0E0E0')
+          .borderRadius(1)
+          .margin({ bottom: 10 })
+        Text('已经到底啦')
+          .fontSize(13)
+          .fontColor('#CCCCCC')
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .padding({ top: 24, bottom: 32 })
     }
   }
 
