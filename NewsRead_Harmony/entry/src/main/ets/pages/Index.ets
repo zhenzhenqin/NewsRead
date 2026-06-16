@@ -36,6 +36,7 @@ struct Index {
   @State avatarUrl: string = 'https://picsum.photos/id/1005/40/40';
 
   private scroller: Scroller = new Scroller();
+  private lastLoadMoreTime: number = 0;
   private swiperController: SwiperController = new SwiperController();
 
   aboutToAppear() {
@@ -97,8 +98,10 @@ struct Index {
   }
 
   async loadRecommendMore() {
-    if (!this.hasMore || this.isLoadingMore) return;
+    const now = Date.now();
+    if (!this.hasMore || this.isLoadingMore || now - this.lastLoadMoreTime < 1500) return;
     this.isLoadingMore = true;
+    this.lastLoadMoreTime = now;
     try {
       const result = await getArticleList(undefined, this.pageNum + 1, 10);
       this.articles = this.articles.concat(result.records || []);
@@ -130,8 +133,10 @@ struct Index {
   }
 
   async loadFollowingMore() {
-    if (!this.followingHasMore || this.isLoadingMore || !this.isLoggedIn) return;
+    const now = Date.now();
+    if (!this.followingHasMore || this.isLoadingMore || !this.isLoggedIn || now - this.lastLoadMoreTime < 1500) return;
     this.isLoadingMore = true;
+    this.lastLoadMoreTime = now;
     try {
       const result = await getFollowingFeed(this.followingPageNum + 1, 10);
       this.followingArticles = this.followingArticles.concat(result.records || []);
