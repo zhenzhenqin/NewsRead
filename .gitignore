@@ -31,3 +31,8 @@ NewsRead_Harmony/local.properties
 NewsRead_Harmony/.hvigor/
 NewsRead_Harmony/**/build/
 NewsRead_Harmony/.cxx/
+
+# Temp files
+newsread_dump.sql
+test_api.sh
+*.log
