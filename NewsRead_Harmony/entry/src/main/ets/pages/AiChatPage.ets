@@ -21,9 +21,6 @@ struct AiChatPage {
   @State messages: DisplayMessage[] = [];
   @State inputText: string = '';
   @State isSending: boolean = false;
-  @State streamingIndex: number = -1;
-  @State cursorVisible: boolean = true;
-  private cursorTimer: number = -1;
   scroller: Scroller = new Scroller();
 
   async aboutToAppear() {
@@ -33,24 +30,6 @@ struct AiChatPage {
     welcome.content = '你好！我是 NewsRead 小助手，可以帮你查找和推荐文章。试着问我：\n\n- 推荐科技新闻\n- 有什么体育资讯？\n- 搜索人工智能相关文章';
     welcome.segments = this.parseContent(welcome.content);
     this.messages = [welcome];
-    this.startCursorTimer();
-  }
-
-  startCursorTimer() {
-    if (this.cursorTimer >= 0) {
-      clearInterval(this.cursorTimer);
-    }
-    this.cursorTimer = setInterval(() => {
-      this.cursorVisible = !this.cursorVisible;
-    }, 500);
-  }
-
-  stopCursorTimer() {
-    if (this.cursorTimer >= 0) {
-      clearInterval(this.cursorTimer);
-      this.cursorTimer = -1;
-    }
-    this.cursorVisible = true;
   }
 
   scrollToBottom() {
@@ -137,29 +116,25 @@ struct AiChatPage {
     this.isSending = true;
     this.scrollToBottom();
 
+    // 构建上下文：发送所有消息（含刚添加的用户消息）
     const chatMessages: ChatMessage[] = [];
-    for (let i = 0; i < this.messages.length - 1; i++) {
+    for (let i = 0; i < this.messages.length; i++) {
       const m: DisplayMessage = this.messages[i];
-      const cm: ChatMessage = new ChatMessage();
-      cm.role = m.role;
-      cm.content = m.content;
-      chatMessages.push(cm);
+      if (m.content.length > 0) {
+        const cm: ChatMessage = new ChatMessage();
+        cm.role = m.role;
+        cm.content = m.content;
+        chatMessages.push(cm);
+      }
     }
-
-    // 添加 AI 消息占位
-    const aiMsg: DisplayMessage = new DisplayMessage();
-    aiMsg.role = 'assistant';
-    aiMsg.content = '';
-    aiMsg.segments = [];
-    this.messages.push(aiMsg);
-    this.streamingIndex = this.messages.length - 1;
-    this.startCursorTimer();
-    this.scrollToBottom();
 
     try {
       const reply: string = await sendAiChat(chatMessages);
-      // 模拟逐字输出效果
-      await this.typewriterEffect(reply);
+      const aiMsg: DisplayMessage = new DisplayMessage();
+      aiMsg.role = 'assistant';
+      aiMsg.content = reply;
+      aiMsg.segments = this.parseContent(reply);
+      this.messages.push(aiMsg);
     } catch (e) {
       let errorDetail: string = '未知错误';
       if (e instanceof Error) {
@@ -167,51 +142,16 @@ struct AiChatPage {
       } else {
         errorDetail = JSON.stringify(e);
       }
-      if (this.streamingIndex >= 0 && this.streamingIndex < this.messages.length) {
-        const msg: DisplayMessage = this.messages[this.streamingIndex];
-        msg.content = '抱歉，请求失败：' + errorDetail;
-        msg.segments = [];
-      }
+      const errMsg: DisplayMessage = new DisplayMessage();
+      errMsg.role = 'assistant';
+      errMsg.content = '抱歉，请求失败：' + errorDetail;
+      errMsg.segments = [];
+      this.messages.push(errMsg);
       promptAction.showToast({ message: '发送失败: ' + errorDetail });
     } finally {
       this.isSending = false;
-      this.streamingIndex = -1;
-      this.stopCursorTimer();
-      // 最终解析链接
-      if (this.messages.length > 0) {
-        const lastMsg: DisplayMessage = this.messages[this.messages.length - 1];
-        if (lastMsg.role === 'assistant') {
-          lastMsg.segments = this.parseContent(lastMsg.content);
-        }
-      }
       this.scrollToBottom();
     }
-  }
-
-  typewriterEffect(fullText: string): Promise<void> {
-    return new Promise<void>((resolve) => {
-      let charIndex: number = 0;
-      const speed: number = 15;
-      const timer = setInterval(() => {
-        if (charIndex >= fullText.length) {
-          clearInterval(timer);
-          if (this.streamingIndex >= 0 && this.streamingIndex < this.messages.length) {
-            const msg: DisplayMessage = this.messages[this.streamingIndex];
-            msg.content = fullText;
-          }
-          resolve();
-          return;
-        }
-        // 每次追加 1-3 个字符，模拟自然节奏
-        const step: number = 1 + Math.floor(Math.random() * 3);
-        charIndex = Math.min(charIndex + step, fullText.length);
-        if (this.streamingIndex >= 0 && this.streamingIndex < this.messages.length) {
-          const msg: DisplayMessage = this.messages[this.streamingIndex];
-          msg.content = fullText.substring(0, charIndex);
-        }
-        this.scrollToBottom();
-      }, speed);
-    });
   }
 
   navigateToArticle(articleId: number) {
@@ -225,62 +165,50 @@ struct AiChatPage {
     Row() {
       if (msg.role === 'user') {
         Blank()
-        Column() {
+        Text(msg.content)
+          .fontSize(15)
+          .fontColor('#FFFFFF')
+          .padding(12)
+          .constraintSize({ maxWidth: '75%' })
+          .backgroundColor('#409EFF')
+          .borderRadius({ topLeft: 16, topRight: 16, bottomLeft: 16, bottomRight: 4 })
+      } else {
+        if (msg.segments.length <= 1) {
           Text(msg.content)
             .fontSize(15)
-            .fontColor('#FFFFFF')
+            .fontColor('#1A1A1A')
             .padding(12)
-        }
-        .backgroundColor('#409EFF')
-        .borderRadius({ topLeft: 16, topRight: 16, bottomLeft: 16, bottomRight: 4 })
-        .constraintSize({ maxWidth: '75%' })
-      } else {
-        Column() {
-          if (this.streamingIndex === index) {
-            // 流式输出中：显示纯文本 + 光标
-            Row() {
-              Text(msg.content)
-                .fontSize(15)
-                .fontColor('#1A1A1A')
-              Text('|')
-                .fontSize(15)
-                .fontColor('#409EFF')
-                .opacity(this.cursorVisible ? 1 : 0)
-            }
-            .padding(12)
-          } else if (msg.segments.length === 0) {
-            Text(msg.content)
-              .fontSize(15)
-              .fontColor('#1A1A1A')
-              .padding(12)
-          } else {
-            Flex({ wrap: FlexWrap.Wrap }) {
-              ForEach(msg.segments, (seg: LinkSegment) => {
-                if (seg.isLink) {
-                  Text(seg.text)
-                    .fontSize(15)
-                    .fontColor('#409EFF')
-                    .decoration({ type: TextDecorationType.Underline })
-                    .backgroundColor('#EBF5FF')
-                    .borderRadius(4)
-                    .padding({ left: 4, right: 4, top: 2, bottom: 2 })
-                    .onClick(() => {
-                      this.navigateToArticle(seg.articleId);
-                    })
-                } else {
-                  Text(seg.text)
-                    .fontSize(15)
-                    .fontColor('#1A1A1A')
-                }
-              })
-            }
-            .padding(12)
+            .constraintSize({ maxWidth: '75%' })
+            .backgroundColor('#FFFFFF')
+            .borderRadius({ topLeft: 4, topRight: 16, bottomLeft: 16, bottomRight: 16 })
+            .shadow({ radius: 4, color: 'rgba(0,0,0,0.05)' })
+        } else {
+          Column() {
+            ForEach(msg.segments, (seg: LinkSegment) => {
+              if (seg.isLink) {
+                Text(seg.text)
+                  .fontSize(15)
+                  .fontColor('#409EFF')
+                  .decoration({ type: TextDecorationType.Underline })
+                  .backgroundColor('#EBF5FF')
+                  .borderRadius(4)
+                  .padding({ left: 4, right: 4, top: 2, bottom: 2 })
+                  .onClick(() => {
+                    this.navigateToArticle(seg.articleId);
+                  })
+              } else {
+                Text(seg.text)
+                  .fontSize(15)
+                  .fontColor('#1A1A1A')
+              }
+            })
           }
+          .padding(12)
+          .constraintSize({ maxWidth: '75%' })
+          .backgroundColor('#FFFFFF')
+          .borderRadius({ topLeft: 4, topRight: 16, bottomLeft: 16, bottomRight: 16 })
+          .shadow({ radius: 4, color: 'rgba(0,0,0,0.05)' })
         }
-        .backgroundColor('#FFFFFF')
-        .borderRadius({ topLeft: 4, topRight: 16, bottomLeft: 16, bottomRight: 16 })
-        .constraintSize({ maxWidth: '75%' })
-        .shadow({ radius: 4, color: 'rgba(0,0,0,0.05)' })
         Blank()
       }
     }
@@ -324,7 +252,7 @@ struct AiChatPage {
       .edgeEffect(EdgeEffect.Spring)
       .backgroundColor('#F5F5F5')
 
-      if (this.isSending && this.streamingIndex < 0) {
+      if (this.isSending) {
         Row() {
           LoadingProgress().width(16).height(16)
           Text('AI 思考中...')
