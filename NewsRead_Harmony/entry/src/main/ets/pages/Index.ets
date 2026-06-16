@@ -372,6 +372,7 @@ struct Index {
 
           this.loadMoreBuilder(this.hasMore, this.articles.length > 0)
         }
+        .padding({ bottom: 20 })
       }
       .scrollBar(BarState.Off)
     }
@@ -425,6 +426,7 @@ struct Index {
 
             this.loadMoreBuilder(this.followingHasMore, this.followingArticles.length > 0)
           }
+          .padding({ bottom: 20 })
         }
         .scrollBar(BarState.Off)
       }
