@@ -41,11 +41,28 @@ public class AiChatService {
     private static final String SYSTEM_PROMPT =
             "你是一个名为\"NewsRead小助手\"的智能阅读伴侣。你的主要职责是解答用户的疑问、总结资讯，并基于NewsRead平台的数据为用户推荐最相关的文章。\n" +
             "\n" +
+            "【平台分类列表】\n" +
+            "平台共有以下文章分类，分类ID与名称对应关系如下：\n" +
+            "- 1: 科技前沿\n" +
+            "- 2: 财经资讯\n" +
+            "- 3: 体育运动\n" +
+            "- 4: 娱乐八卦\n" +
+            "- 5: 健康养生\n" +
+            "- 6: 教育培训\n" +
+            "- 20: 人工智能\n" +
+            "- 21: 汽车出行\n" +
+            "- 22: 旅游游记\n" +
+            "- 23: 国际风云\n" +
+            "\n" +
             "【核心能力与工作流程】\n" +
             "1. 当用户提出一般性问题时，利用你的常识进行解答。\n" +
-            "2. 当用户明确要求\"推荐文章\"、\"查找资讯\"，或者他们的问题暗示需要平台内的真实数据来支撑时，你必须使用 search_articles 工具来查询本地数据库。\n" +
-            "3. 如果工具返回了文章列表（包含 id, title, summary 等），你必须基于这些真实数据为用户生成推荐语。\n" +
-            "4. 绝对不要凭空捏造平台内不存在的文章。如果查询不到相关文章，请礼貌地告知用户目前平台暂无相关内容，并给出你自己的通用解答。\n" +
+            "2. 当用户明确要求\"推荐文章\"、\"查找资讯\"，或者他们的问题暗示需要平台内的真实数据来支撑时，你必须使用工具来查询本地数据库。\n" +
+            "3. 你有两个搜索工具可用：\n" +
+            "   - search_articles：根据关键词搜索文章（匹配标题和摘要）。适用于用户提出具体关键词时。\n" +
+            "   - search_by_category：根据分类ID获取某分类下的文章。当用户的查询涉及上述某个分类主题时使用（例如用户问\"科技类文章\"对应分类ID 1，\"体育新闻\"对应分类ID 3）。\n" +
+            "4. 当用户的查询既包含具体关键词又涉及某个分类主题时，你应该同时调用两个工具以获得更全面的结果。\n" +
+            "5. 如果工具返回了文章列表（包含 id, title, summary 等），你必须基于这些真实数据为用户生成推荐语。\n" +
+            "6. 绝对不要凭空捏造平台内不存在的文章。如果查询不到相关文章，请礼貌地告知用户目前平台暂无相关内容，并给出你自己的通用解答。\n" +
             "\n" +
             "【回答风格】\n" +
             "- 语气亲切、专业、客观。\n" +
@@ -58,7 +75,8 @@ public class AiChatService {
             "其中 {id} 是文章的数字 ID。例如：[5G技术突破](newsread://article/42)\n" +
             "绝对不要编造不存在的文章 ID。";
 
-    private static final String TOOL_NAME = "search_articles";
+    private static final String TOOL_SEARCH_ARTICLES = "search_articles";
+    private static final String TOOL_SEARCH_BY_CATEGORY = "search_by_category";
 
     private static final int MAX_TOOL_ROUNDS = 5;
 
@@ -241,34 +259,68 @@ public class AiChatService {
      * 构造 tools 定义
      */
     private List<Map<String, Object>> buildTools() {
-        Map<String, Object> tool = new HashMap<>();
-        tool.put("name", TOOL_NAME);
-        tool.put("description", "根据关键词搜索平台内的新闻文章。当用户想要查找、推荐或了解特定主题的文章时使用此工具。");
+        List<Map<String, Object>> tools = new ArrayList<>();
 
-        Map<String, Object> inputSchema = new HashMap<>();
-        inputSchema.put("type", "object");
+        // 工具1：关键词搜索
+        Map<String, Object> searchTool = new HashMap<>();
+        searchTool.put("name", TOOL_SEARCH_ARTICLES);
+        searchTool.put("description", "根据关键词搜索平台内的新闻文章。当用户想要查找、推荐或了解特定主题的文章时使用此工具。");
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> searchSchema = new HashMap<>();
+        searchSchema.put("type", "object");
+
+        Map<String, Object> searchProps = new HashMap<>();
         Map<String, Object> keywordProp = new HashMap<>();
         keywordProp.put("type", "string");
-        keywordProp.put("description", "搜索关键词，如\"科技\"、\"财经\"、\"体育\"等");
-        properties.put("keyword", keywordProp);
+        keywordProp.put("description", "搜索关键词，如\"5G\"、\"股票\"、\"NBA\"等");
+        searchProps.put("keyword", keywordProp);
 
-        inputSchema.put("properties", properties);
-        inputSchema.put("required", List.of("keyword"));
+        searchSchema.put("properties", searchProps);
+        searchSchema.put("required", List.of("keyword"));
+        searchTool.put("input_schema", searchSchema);
+        tools.add(searchTool);
 
-        tool.put("input_schema", inputSchema);
-        return List.of(tool);
+        // 工具2：分类搜索
+        Map<String, Object> categoryTool = new HashMap<>();
+        categoryTool.put("name", TOOL_SEARCH_BY_CATEGORY);
+        categoryTool.put("description", "根据分类获取该分类下的新闻文章。当用户的查询涉及某个分类主题时使用（如\"科技类文章\"→categoryId=1，\"体育新闻\"→categoryId=3）。");
+
+        Map<String, Object> categorySchema = new HashMap<>();
+        categorySchema.put("type", "object");
+
+        Map<String, Object> categoryProps = new HashMap<>();
+        Map<String, Object> categoryIdProp = new HashMap<>();
+        categoryIdProp.put("type", "number");
+        categoryIdProp.put("description", "分类ID：1=科技前沿, 2=财经资讯, 3=体育运动, 4=娱乐八卦, 5=健康养生, 6=教育培训, 20=人工智能, 21=汽车出行, 22=旅游游记, 23=国际风云");
+        categoryProps.put("categoryId", categoryIdProp);
+        Map<String, Object> limitProp = new HashMap<>();
+        limitProp.put("type", "number");
+        limitProp.put("description", "返回文章数量，默认5篇");
+        categoryProps.put("limit", limitProp);
+
+        categorySchema.put("properties", categoryProps);
+        categorySchema.put("required", List.of("categoryId"));
+        categoryTool.put("input_schema", categorySchema);
+        tools.add(categoryTool);
+
+        return tools;
     }
 
     /**
      * 执行工具调用
      */
     private String executeTool(String toolName, JsonNode toolInput) {
-        if (!TOOL_NAME.equals(toolName)) {
-            return "未知工具: " + toolName;
+        switch (toolName) {
+            case TOOL_SEARCH_ARTICLES:
+                return executeSearchArticles(toolInput);
+            case TOOL_SEARCH_BY_CATEGORY:
+                return executeSearchByCategory(toolInput);
+            default:
+                return "未知工具: " + toolName;
         }
+    }
 
+    private String executeSearchArticles(JsonNode toolInput) {
         String keyword = toolInput.path("keyword").asText("");
         if (keyword.isEmpty()) {
             return "搜索关键词不能为空";
@@ -281,7 +333,7 @@ public class AiChatService {
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append("找到 ").append(articles.size()).append(" 篇相关文章：\n");
+            sb.append("关键词搜索找到 ").append(articles.size()).append(" 篇相关文章：\n");
             for (Article article : articles) {
                 sb.append("id: ").append(article.getId())
                   .append(" | title: ").append(article.getTitle())
@@ -291,8 +343,38 @@ public class AiChatService {
             return sb.toString();
 
         } catch (Exception e) {
-            log.error("搜索文章失败: {}", e.getMessage());
+            log.error("关键词搜索文章失败: {}", e.getMessage());
             return "搜索文章时出现错误: " + e.getMessage();
+        }
+    }
+
+    private String executeSearchByCategory(JsonNode toolInput) {
+        long categoryId = toolInput.path("categoryId").asLong(0);
+        if (categoryId == 0) {
+            return "分类ID不能为空";
+        }
+
+        int limit = toolInput.path("limit").asInt(5);
+
+        try {
+            List<Article> articles = articleMapper.selectByCategoryId(categoryId, limit);
+            if (articles == null || articles.isEmpty()) {
+                return "该分类下暂无文章。";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("该分类下找到 ").append(articles.size()).append(" 篇文章：\n");
+            for (Article article : articles) {
+                sb.append("id: ").append(article.getId())
+                  .append(" | title: ").append(article.getTitle())
+                  .append(" | summary: ").append(article.getSummary())
+                  .append("\n");
+            }
+            return sb.toString();
+
+        } catch (Exception e) {
+            log.error("分类搜索文章失败: {}", e.getMessage());
+            return "分类搜索文章时出现错误: " + e.getMessage();
         }
     }
 }
