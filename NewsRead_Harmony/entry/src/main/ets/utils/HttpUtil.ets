@@ -12,7 +12,8 @@ export function getToken(): string {
   return token;
 }
 
-const BASE_URL = 'http://10.0.2.2:8080/api';
+// const BASE_URL = 'http://10.0.2.2:8080/api';
+const BASE_URL = 'http://113.44.64.113:8080/api';
 
 export async function request<T>(url: string, method: http.RequestMethod, extraData?: string): Promise<T> {
   const httpRequest = http.createHttp();
@@ -37,7 +38,9 @@ export async function request<T>(url: string, method: http.RequestMethod, extraD
       method: method,
       header: headerObj,
       extraData: extraData,
-      expectDataType: http.HttpDataType.STRING // 推荐：直接要求返回字符串
+      expectDataType: http.HttpDataType.STRING,
+      connectTimeout: 10000,
+      readTimeout: 300000
     };
 
     // 3. 必须使用原生的 http.HttpResponse 接收结果

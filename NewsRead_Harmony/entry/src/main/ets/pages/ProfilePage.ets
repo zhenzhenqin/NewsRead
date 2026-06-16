@@ -100,6 +100,44 @@ struct ProfilePage {
           .margin({ left: 20 })
 
         Row() {
+          Text('我的关注')
+            .fontSize(16)
+            .fontColor('#1A1A1A')
+          Blank()
+          Text('›')
+            .fontSize(18)
+            .fontColor('#CCCCCC')
+        }
+        .width('100%')
+        .padding(20)
+        .backgroundColor('#FFFFFF')
+        .onClick(() => {
+          router.pushUrl({ url: 'pages/FollowingListPage' });
+        })
+
+        Divider()
+          .margin({ left: 20 })
+
+        Row() {
+          Text('AI 小助手')
+            .fontSize(16)
+            .fontColor('#1A1A1A')
+          Blank()
+          Text('›')
+            .fontSize(18)
+            .fontColor('#CCCCCC')
+        }
+        .width('100%')
+        .padding(20)
+        .backgroundColor('#FFFFFF')
+        .onClick(() => {
+          router.pushUrl({ url: 'pages/AiChatPage' });
+        })
+
+        Divider()
+          .margin({ left: 20 })
+
+        Row() {
           Text('修改密码')
             .fontSize(16)
             .fontColor('#1A1A1A')

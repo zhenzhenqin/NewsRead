@@ -51,3 +51,9 @@ ai:
     api-url: https://api.siliconflow.cn/v1/chat/completions
     api-key: sk-vnaoqiypclyxdinhmsbrxilpzzokihxxdzkuhglzgjyzrsix
     model-name: Qwen/Qwen2.5-7B-Instruct
+  mimo:
+    # 小米 Mimo 平台（Anthropic 协议兼容）
+    base-url: https://token-plan-cn.xiaomimimo.com/anthropic
+    api-key: tp-cgov13vc3fi5voiei2ugyucyhms6c989sptkcm99jhl50nlb
+    model-name: mimo-v2.5-pro
+    max-tokens: 2048

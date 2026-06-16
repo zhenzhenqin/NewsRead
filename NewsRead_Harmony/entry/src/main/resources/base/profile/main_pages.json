@@ -8,6 +8,9 @@
     "pages/ChangePasswordPage",
     "pages/CommentPage",
     "pages/ProfileDetailPage",
-    "pages/FavoritePage"
+    "pages/FavoritePage",
+    "pages/SearchPage",
+    "pages/FollowingListPage",
+    "pages/AiChatPage"
   ]
 }

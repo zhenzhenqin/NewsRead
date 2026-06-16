@@ -265,6 +265,22 @@ CREATE TABLE IF NOT EXISTS `article_favorite` (
     KEY `idx_article_id` (`article_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文章收藏表';
 
+-- 10. 搜索历史表
+CREATE TABLE IF NOT EXISTS `search_history` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `keyword` VARCHAR(100) NOT NULL COMMENT '搜索关键词',
+    `search_count` INT DEFAULT 1 COMMENT '搜索次数',
+    `last_search_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '最近搜索时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_keyword` (`user_id`, `keyword`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_last_search` (`last_search_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='搜索历史表';
+
+-- 11. article 表全文索引（ngram 解析器支持中文）
+ALTER TABLE `article` ADD FULLTEXT INDEX `ft_title_summary` (`title`, `summary`) WITH PARSER ngram;
+
 -- 插入评论点赞记录 (测试评论列表功能)
 INSERT INTO `comment_like` (`user_id`, `comment_id`, `create_time`) VALUES
                                                                         (101, 1000, '2026-04-14 09:40:00'), -- 点赞职场评论
@@ -272,3 +288,25 @@ INSERT INTO `comment_like` (`user_id`, `comment_id`, `create_time`) VALUES
                                                                         (103, 1004, '2026-04-14 11:00:00'), -- 点赞新加坡无人出租评论
                                                                         (100, 1016, '2026-04-14 08:06:00'), -- 点赞"吐槽国足"的精彩回复
                                                                         (102, 1016, '2026-04-14 08:10:00'); -- 再次点赞
+
+-- 12. 用户关注表
+CREATE TABLE IF NOT EXISTS `user_follow` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `follower_id` BIGINT NOT NULL COMMENT '关注者ID',
+    `followed_id` BIGINT NOT NULL COMMENT '被关注者ID',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '关注时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_follower_followed` (`follower_id`, `followed_id`),
+    KEY `idx_followed_id` (`followed_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户关注表';
+
+-- 插入测试关注数据
+INSERT INTO `user_follow` (`follower_id`, `followed_id`, `create_time`) VALUES
+    (100, 101, '2026-04-13 10:00:00'),
+    (100, 102, '2026-04-13 10:05:00'),
+    (100, 103, '2026-04-14 08:00:00'),
+    (101, 100, '2026-04-13 12:00:00'),
+    (101, 103, '2026-04-14 09:00:00'),
+    (102, 100, '2026-04-14 07:30:00'),
+    (103, 100, '2026-04-14 06:00:00'),
+    (103, 102, '2026-04-14 06:30:00');

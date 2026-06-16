@@ -19,7 +19,7 @@
         <el-form-item label="封面图" prop="coverImage">
           <el-upload
             class="cover-uploader"
-            action="http://localhost:8080/api/upload"
+            action="http://113.44.64.113:8080/api/upload"
             :show-file-list="false"
             :on-success="handleCoverSuccess"
             :before-upload="beforeCoverUpload"
@@ -118,7 +118,7 @@ const uploadHeaders = ref({
 
 const handleCoverSuccess = (response: any) => {
   if (response.code === 200 || response.code === 201) {
-    form.coverImage = 'http://localhost:8080' + response.data
+    form.coverImage = 'http://113.44.64.113:8080' + response.data
   } else {
     ElMessage.error(response.message || '上传失败')
   }
@@ -162,7 +162,9 @@ const handleSubmit = async (publishStatus: number) => {
   
   submitting.value = true
   try {
-    form.isPublished = publishStatus
+    if (publishStatus === 0) {
+      form.isPublished = 0
+    }
     
     if (isEdit.value) {
       await updateArticle(form as any)

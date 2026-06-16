@@ -79,3 +79,13 @@ export async function hasLikedArticle(id: number): Promise<LikeResult> {
   let params: Record<string, number> = {};
   return get<LikeResult>('/article/hasLiked/' + id.toString(), params);
 }
+
+/**
+ * 关注频道文章流（分页）
+ */
+export async function getFollowingFeed(pageNum: number = 1, pageSize: number = 10): Promise<PageResult<Article>> {
+  let params: Record<string, number> = {};
+  params['pageNum'] = pageNum;
+  params['pageSize'] = pageSize;
+  return get<PageResult<Article>>('/article/following-feed', params);
+}

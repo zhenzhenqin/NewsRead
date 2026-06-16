@@ -33,4 +33,44 @@
         LIMIT #{limit}
     </select>
 
+    <!-- 全文搜索：LIKE 模糊匹配（兼容 MariaDB，支持中文） -->
+    <select id="selectByFulltext" resultType="com.newsread.entity.Article">
+        SELECT *
+        FROM article
+        WHERE status = 1 AND is_published = 1
+          AND (title LIKE CONCAT('%', #{keyword}, '%') OR summary LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY publish_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 全文搜索结果总数 -->
+    <select id="countByFulltext" resultType="int">
+        SELECT COUNT(*)
+        FROM article
+        WHERE status = 1 AND is_published = 1
+          AND (title LIKE CONCAT('%', #{keyword}, '%') OR summary LIKE CONCAT('%', #{keyword}, '%'))
+    </select>
+
+    <!-- 关注频道：按作者ID列表查询文章 -->
+    <select id="selectByAuthorIds" resultType="com.newsread.entity.Article">
+        SELECT * FROM article
+        WHERE status = 1 AND is_published = 1
+          AND author_id IN
+        <foreach collection="authorIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY publish_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 关注频道：按作者ID列表统计总数 -->
+    <select id="countByAuthorIds" resultType="int">
+        SELECT COUNT(*) FROM article
+        WHERE status = 1 AND is_published = 1
+          AND author_id IN
+        <foreach collection="authorIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
 </mapper>

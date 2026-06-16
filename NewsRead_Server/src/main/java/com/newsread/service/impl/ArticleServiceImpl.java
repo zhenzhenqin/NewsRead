@@ -1,18 +1,24 @@
 package com.newsread.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.newsread.entity.Article;
 import com.newsread.mapper.ArticleMapper;
 import com.newsread.service.ArticleService;
+import com.newsread.service.FollowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
+
+    @Autowired
+    private FollowService followService;
 
     @Override
     @Transactional
@@ -58,5 +64,22 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         wrapper.orderByDesc(Article::getViewCount);
         wrapper.last("LIMIT " + limit);
         return this.list(wrapper);
+    }
+
+    @Override
+    public Page<Article> getFollowingFeed(Long userId, int pageNum, int pageSize) {
+        List<Long> authorIds = followService.getFollowingUserIds(userId);
+        Page<Article> page = new Page<>(pageNum, pageSize);
+        if (authorIds.isEmpty()) {
+            page.setRecords(Collections.emptyList());
+            page.setTotal(0);
+            return page;
+        }
+        int offset = (pageNum - 1) * pageSize;
+        List<Article> records = baseMapper.selectByAuthorIds(authorIds, offset, pageSize);
+        int total = baseMapper.countByAuthorIds(authorIds);
+        page.setRecords(records);
+        page.setTotal(total);
+        return page;
     }
 }

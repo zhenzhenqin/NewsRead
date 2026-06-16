@@ -46,7 +46,6 @@ async function restoreLoginState(): Promise<boolean> {
 class AuthUtil {
   private static currentUser: User | null = null;
   private static token: string = '';
-  private static isInit: boolean = false;
 
   static getUser(): User | null {
     return AuthUtil.currentUser;
@@ -68,19 +67,13 @@ class AuthUtil {
   static clear(): void {
     AuthUtil.currentUser = null;
     AuthUtil.token = '';
-    AuthUtil.isInit = false;
   }
 
   static async restoreLogin(): Promise<boolean> {
-    if (AuthUtil.isInit) {
-      console.info('[AUTH] restoreLogin: cached, isLoggedIn=' + AuthUtil.isLoggedIn());
-      return AuthUtil.isLoggedIn();
-    }
     try {
-      console.info('[AUTH] restoreLogin: starting fresh restore...');
+      console.info('[AUTH] restoreLogin: restoring from StorageUtil...');
       const result = await restoreLoginState();
-      AuthUtil.isInit = true;
-      console.info('[AUTH] restoreLogin: done, result=' + result + ', isLoggedIn=' + AuthUtil.isLoggedIn());
+      console.info('[AUTH] restoreLogin: done, result=' + result + ', isLoggedIn=' + AuthUtil.isLoggedIn() + ', tokenLen=' + AuthUtil.token.length);
       return result;
     } catch (e) {
       console.error('[AUTH] restoreLogin EXCEPTION: ' + JSON.stringify(e));

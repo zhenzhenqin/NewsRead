@@ -6,6 +6,7 @@ import com.newsread.common.Result;
 import com.newsread.entity.Article;
 import com.newsread.service.ArticleService;
 import com.newsread.service.ArticleRecommendationService;
+import com.newsread.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
@@ -21,6 +22,9 @@ public class ArticleController {
     
     @Autowired
     private ArticleRecommendationService recommendationService;
+
+    @Autowired
+    private SearchService searchService;
 
     @GetMapping("/list")
     public Result<Page<Article>> list(
@@ -70,6 +74,37 @@ public class ArticleController {
         return Result.success(list);
     }
 
+    /**
+     * 全文搜索
+     */
+    @GetMapping("/search")
+    public Result<Page<Article>> search(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestAttribute(value = "userId", required = false) Long userId) {
+        Page<Article> result = searchService.search(keyword, page, size);
+        // 异步记录搜索历史，不阻塞响应
+        searchService.recordSearchHistory(userId, keyword);
+        return Result.success(result);
+    }
+
+    /**
+     * 最近 7 天搜索热词 Top10
+     */
+    @GetMapping("/hot-keywords")
+    public Result<List<Map<String, Object>>> hotKeywords() {
+        return Result.success(searchService.getHotKeywords());
+    }
+
+    /**
+     * 当前用户最近搜索历史（去重，最多10条）
+     */
+    @GetMapping("/my-search-history")
+    public Result<List<String>> mySearchHistory(@RequestAttribute(value = "userId", required = false) Long userId) {
+        return Result.success(searchService.getMySearchHistory(userId));
+    }
+
     @PostMapping("/create")
     public Result<Void> create(@RequestBody Article article, @RequestAttribute("userId") Long userId) {
         article.setCreateTime(LocalDateTime.now());
@@ -80,6 +115,7 @@ public class ArticleController {
         article.setAuthorId(userId);
         articleService.save(article);
         return Result.success();
+
     }
 
     @PutMapping("/update")
@@ -100,5 +136,16 @@ public class ArticleController {
         Long id = params.get("id");
         articleService.incrementLikeCount(id);
         return Result.success();
+    }
+
+    /**
+     * 关注频道文章流（分页，需登录）
+     */
+    @GetMapping("/following-feed")
+    public Result<Page<Article>> followingFeed(
+            @RequestAttribute("userId") Long userId,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize) {
+        return Result.success(articleService.getFollowingFeed(userId, pageNum, pageSize));
     }
 }

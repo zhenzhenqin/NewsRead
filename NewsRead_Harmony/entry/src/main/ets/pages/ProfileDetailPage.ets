@@ -3,6 +3,7 @@ import { getLikedArticles, getUserComments, getBrowseHistory, deleteBrowseHistor
 import { Article } from '../api/articleApi';
 import { Comment } from '../api/commentApi';
 import { AuthUtil } from '../utils/AuthUtil';
+import { checkFollowing, toggleFollow } from '../api/followApi';
 import promptAction from '@ohos.promptAction';
 
 class ArticleRouteParams {
@@ -99,6 +100,10 @@ struct ProfileDetailPage {
   @State browseHistory: Article[] = [];
   @State isLoading: boolean = false;
   @State isLoggedIn: boolean = false;
+  @State targetUserId: number = 0;
+  @State targetNickname: string = '';
+  @State isFollowing: boolean = false;
+  @State isFollowLoading: boolean = false;
 
   async aboutToAppear() {
     const loggedIn = await AuthUtil.restoreLogin();
@@ -108,7 +113,40 @@ struct ProfileDetailPage {
       router.back();
       return;
     }
+    // 从路由参数获取目标用户信息
+    const params = router.getParams() as Record<string, Object>;
+    if (params && params['userId']) {
+      this.targetUserId = params['userId'] as number;
+      this.targetNickname = params['nickname'] ? (params['nickname'] as string) : '用户';
+      this.loadFollowStatus();
+    }
     this.loadData();
+  }
+
+  async loadFollowStatus() {
+    if (this.targetUserId <= 0) {
+      return;
+    }
+    try {
+      this.isFollowing = await checkFollowing(this.targetUserId);
+    } catch (e) {
+      console.error('查询关注状态失败:', JSON.stringify(e));
+    }
+  }
+
+  async doToggleFollow() {
+    if (this.targetUserId <= 0 || this.isFollowLoading) {
+      return;
+    }
+    this.isFollowLoading = true;
+    try {
+      this.isFollowing = await toggleFollow(this.targetUserId);
+      promptAction.showToast({ message: this.isFollowing ? '已关注' : '已取消关注' });
+    } catch (e) {
+      promptAction.showToast({ message: '操作失败' });
+    } finally {
+      this.isFollowLoading = false;
+    }
   }
 
   async loadData() {
@@ -165,12 +203,23 @@ struct ProfileDetailPage {
             router.back();
           })
 
-        Text(this.currentTab === 2 ? '浏览记录' : '个人中心')
+        Text(this.targetUserId > 0 ? this.targetNickname : (this.currentTab === 2 ? '浏览记录' : '个人中心'))
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .fontColor('#1A1A1A')
 
-        if (this.currentTab === 2 && this.browseHistory.length > 0) {
+        if (this.targetUserId > 0) {
+          // 查看他人主页：显示关注按钮
+          Text(this.isFollowing ? '已关注' : '+ 关注')
+            .fontSize(14)
+            .fontColor(this.isFollowing ? '#999999' : '#FFFFFF')
+            .backgroundColor(this.isFollowing ? '#F0F0F0' : '#409EFF')
+            .borderRadius(16)
+            .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+            .onClick(() => {
+              this.doToggleFollow();
+            })
+        } else if (this.currentTab === 2 && this.browseHistory.length > 0) {
           Text('清空')
             .fontSize(14)
             .fontColor('#FF4D4F')

@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +42,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://10.0.2.2"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -59,9 +60,10 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(request -> "OPTIONS".equalsIgnoreCase(request.getMethod())).permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/api/user/login", "/api/user/register", "/api/user/logout").permitAll()
-                .requestMatchers("/api/article/list", "/api/article/recommend", "/api/article/featured", "/api/article/hot", "/api/article/detail/**").permitAll()
+                .requestMatchers("/api/article/list", "/api/article/recommend", "/api/article/featured", "/api/article/hot", "/api/article/detail/**", "/api/article/search", "/api/article/hot-keywords", "/api/article/my-search-history").permitAll()
                 .requestMatchers("/api/category/**").permitAll()
                 .requestMatchers("/api/comment/all", "/api/comment/list", "/api/comment/hide/**", "/api/comment/show/**").permitAll()
                 .requestMatchers("/api/upload").permitAll()
