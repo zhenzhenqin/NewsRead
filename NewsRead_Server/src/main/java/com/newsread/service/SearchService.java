@@ -28,8 +28,10 @@ public class SearchService {
      */
     public Page<Article> search(String keyword, int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
+        System.out.println("=== 搜索调试 === keyword=[" + keyword + "] offset=" + offset + " size=" + pageSize);
         List<Article> records = articleMapper.selectByFulltext(keyword, offset, pageSize);
         int total = articleMapper.countByFulltext(keyword);
+        System.out.println("=== 搜索结果 === total=" + total + " records.size=" + records.size());
 
         Page<Article> page = new Page<>(pageNum, pageSize);
         page.setRecords(records);

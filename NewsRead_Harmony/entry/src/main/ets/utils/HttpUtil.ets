@@ -127,7 +127,7 @@ export async function get<T>(url: string, params: Record<string, string | number
       const key = keys[i];
       const value = params[key];
       if (value !== undefined && value !== null) {
-        parts.push(key + '=' + value.toString());
+        parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value.toString()));
       }
     }
     if (parts.length > 0) {
